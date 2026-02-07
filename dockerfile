@@ -15,18 +15,20 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
+# Salin package file dulu (untuk optimasi cache)
 COPY package*.json ./
 
-# Gunakan --omit=dev agar sesuai saran npm, tapi pastikan typescript terinstall
+# Install semua dependensi
 RUN npm install
 
+# Salin semua kode sumber
 COPY . .
 
-# Build TypeScript
-RUN npx tsc
-
-# Environment Variable agar Puppeteer tahu lokasi Chrome
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
 
-CMD ["node", "src/app.js"]
+# Compile TypeScript ke JavaScript (dist/)
+RUN npm run build
+
+# Jalankan bot menggunakan hasil kompilasi
+CMD ["npm", "start"]
