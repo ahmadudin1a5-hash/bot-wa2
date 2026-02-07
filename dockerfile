@@ -1,34 +1,27 @@
-# Gunakan image node resmi
-FROM node:20
+# Gunakan image yang sudah ada Chrome-nya
+FROM ghcr.io/puppeteer/puppeteer:latest
 
-# Instal Chrome untuk Puppeteer
-RUN apt-get update && apt-get install -y \
-    google-chrome-stable \
-    fonts-ipafont-gothic \
-    fonts-wqy-zenhei \
-    fonts-thai-tlwg \
-    fonts-kacst \
-    fonts-freefont-ttf \
-    libxss1 \
-    --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/*
+USER root
+
+# Instal ffmpeg (penting untuk stiker/video)
+RUN apt-get update && apt-get install -y ffmpeg && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Salin package file dulu (untuk optimasi cache)
+# Salin package.json
 COPY package*.json ./
 
-# Install semua dependensi
+# Install dependensi
 RUN npm install
 
-# Salin semua kode sumber
+# Salin semua file proyek
 COPY . .
 
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
-
-# Compile TypeScript ke JavaScript (dist/)
+# Build TypeScript kamu
 RUN npm run build
 
-# Jalankan bot menggunakan hasil kompilasi
-CMD ["npm", "start"]
+# Beri izin pada folder auth jika ada
+RUN mkdir -p .wwebjs_auth && chmod -R 777 .wwebjs_auth
+
+# Jalankan bot dari hasil build
+CMD ["node", "dist/app.js"]
