@@ -1,28 +1,32 @@
-# Menggunakan image Node yang sudah include Puppeteer/Chrome
-FROM ghcr.io/puppeteer/puppeteer:latest
+# Gunakan image node resmi
+FROM node:20
 
-# Pindah ke user root untuk install dependensi sistem
-USER root
-
-# Update dan install library tambahan yang mungkin dibutuhkan
+# Instal Chrome untuk Puppeteer
 RUN apt-get update && apt-get install -y \
-    ffmpeg \
+    google-chrome-stable \
+    fonts-ipafont-gothic \
+    fonts-wqy-zenhei \
+    fonts-thai-tlwg \
+    fonts-kacst \
+    fonts-freefont-ttf \
+    libxss1 \
+    --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-# Set direktori kerja
 WORKDIR /app
 
-# Salin package file dulu (untuk optimasi cache)
 COPY package*.json ./
 
-# Install semua dependensi
+# Gunakan --omit=dev agar sesuai saran npm, tapi pastikan typescript terinstall
 RUN npm install
 
-# Salin semua kode sumber
 COPY . .
 
-# Compile TypeScript ke JavaScript (dist/)
-RUN npm run build
+# Build TypeScript
+RUN npx tsc
 
-# Jalankan bot menggunakan hasil kompilasi
-CMD ["npm", "start"]
+# Environment Variable agar Puppeteer tahu lokasi Chrome
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+
+CMD ["node", "src/app.js"]
