@@ -1,27 +1,41 @@
-# Gunakan image yang sudah ada Chrome-nya
-FROM ghcr.io/puppeteer/puppeteer:latest
+# 1. Gunakan image node yang stabil
+FROM node:20
 
-USER root
-
-# Instal ffmpeg (penting untuk stiker/video)
-RUN apt-get update && apt-get install -y ffmpeg && rm -rf /var/lib/apt/lists/*
+# 2. Instal semua library Linux yang dibutuhkan Chrome agar tidak error 'libglib'
+RUN apt-get update && apt-get install -y \
+    wget \
+    gnupg \
+    ca-certificates \
+    libgconf-2-4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libgdk-pixbuf2.0-0 \
+    libgtk-3-0 \
+    libgbm-dev \
+    libnss3 \
+    libxss1 \
+    libasound2 \
+    fonts-liberation \
+    libappindicator3-1 \
+    xdg-utils \
+    --no-install-recommends \
+    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Salin package.json
+# 3. Copy package file dan install
 COPY package*.json ./
-
-# Install dependensi
 RUN npm install
 
-# Salin semua file proyek
+# 4. Copy semua file sumber (.ts, tsconfig.json, dll)
 COPY . .
 
-# Build TypeScript kamu
-RUN npm run build
+# 5. PROSES BUILD: Mengubah src/*.ts menjadi dist/*.js
+RUN npx tsc
 
-# Beri izin pada folder auth jika ada
-RUN mkdir -p .wwebjs_auth && chmod -R 777 .wwebjs_auth
-
-# Jalankan bot dari hasil build
+# 6. Jalankan file hasil build yang sekarang sudah ada di folder dist
 CMD ["node", "dist/app.js"]

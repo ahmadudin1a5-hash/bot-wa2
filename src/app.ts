@@ -15,27 +15,18 @@ if (!global.activeSessions) {
 export const activeSessions = global.activeSessions;
 
 const client = new Client({
-    restartOnAuthFail: true,
-    webVersionCache: {
-        type: "remote",
-        remotePath:
-          "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2410.1.html",
-      },
-      puppeteer: {
+    authStrategy: new LocalAuth(),
+    puppeteer: {
         headless: true,
         args: [
-          "--no-sandbox",
-          "--disable-setuid-sandbox",
-          "--disable-dev-shm-usage",
-          "--disable-accelerated-2d-canvas",
-          "--no-first-run",
-          "--no-zygote",
-          "--single-process", 
-          "--disable-gpu",
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-gpu'
         ],
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-    },
-      authStrategy: new LocalAuth(),
+        // Jangan diisi path manual, biarkan kosong agar otomatis
+        executablePath: '/usr/bin/google-chrome-stable' 
+    }
 });
 
 client.on('qr', (qr) => {
