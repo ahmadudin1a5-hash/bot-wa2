@@ -1,21 +1,28 @@
+# Menggunakan image Node yang sudah include Puppeteer/Chrome
 FROM ghcr.io/puppeteer/puppeteer:latest
 
+# Pindah ke user root untuk install dependensi sistem
 USER root
 
-# Instal dependensi tambahan jika diperlukan
+# Update dan install library tambahan yang mungkin dibutuhkan
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
+# Set direktori kerja
 WORKDIR /app
 
+# Salin package file dulu (untuk optimasi cache)
 COPY package*.json ./
+
+# Install semua dependensi
 RUN npm install
 
+# Salin semua kode sumber
 COPY . .
 
-# Jika menggunakan TypeScript, kita build dulu
-RUN npm run build 
+# Compile TypeScript ke JavaScript (dist/)
+RUN npm run build
 
-# Jalankan bot (sesuaikan dengan file hasil build kamu)
-CMD ["node", "src/app.js"]
+# Jalankan bot menggunakan hasil kompilasi
+CMD ["npm", "start"]
