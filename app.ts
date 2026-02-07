@@ -1,7 +1,7 @@
 import { Client, LocalAuth } from "whatsapp-web.js";
 import { Message } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal";
-import commands from "./commands";
+import commands from "./src/commands";
 declare global {
     var activeSessions: Map<string, string>;
 }
@@ -34,7 +34,7 @@ const client = new Client({
           "--disable-gpu",
         ],
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable',
-    },
+      },
       authStrategy: new LocalAuth(),
 });
 
