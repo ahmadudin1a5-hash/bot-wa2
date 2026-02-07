@@ -1,37 +1,36 @@
-# Gunakan image node versi terbaru
-FROM node:20-slim
+# Gunakan image node yang berbasis Debian (bukan Alpine) agar library lengkap
+FROM node:20-bookworm-slim
 
-# Instal dependensi sistem untuk Chrome & Puppeteer
+# Instal semua library sistem yang dibutuhkan Chrome
 RUN apt-get update && apt-get install -y \
     wget \
     gnupg \
     ca-certificates \
-    apt-transport-https \
-    libgbm-dev \
     libnss3 \
     libatk-bridge2.0-0 \
     libgtk-3-0 \
+    libgbm-dev \
     libasound2 \
-    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable --no-install-recommends \
+    --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
+
+# Instal Puppeteer secara global untuk memastikan browser terdownload
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false
 
 WORKDIR /app
 
-# Salin package.json dan install
+# Copy package dan install
 COPY package*.json ./
 RUN npm install
 
-# Salin semua kode (src, tsconfig, dll)
+# Copy semua file (src, tsconfig.json)
 COPY . .
 
-# Jalankan build TypeScript untuk membuat folder dist/
+# Jalankan build TypeScript (membuat folder dist)
 RUN npx tsc
 
-# Set path agar Puppeteer langsung menemukan Chrome yang baru diinstall
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+# Berikan izin eksekusi pada folder chrome yang terunduh
+RUN chmod -R 777 /app/node_modules/puppeteer/.local-chromium 2>/dev/null || true
 
-# Jalankan hasil build
+# Jalankan bot
 CMD ["node", "dist/app.js"]

@@ -24,8 +24,6 @@ const client = new Client({
             '--disable-dev-shm-usage',
             '--disable-gpu'
         ],
-        // Jangan diisi path manual, biarkan kosong agar otomatis
-        executablePath: '/usr/bin/google-chrome-stable' 
     }
 });
 
